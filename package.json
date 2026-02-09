@@ -1,0 +1,18 @@
+{
+  "name": "serenipathh",
+  "version": "1.0.0",
+  "description": "Agrégateur de données et cartographie d'estimation de densité de population pour l'aide au déplacement des personnes atteintes de phobies sociales",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && nodemon index.js",
+    "client": "cd client && npm start",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "keywords": ["phobies-sociales", "densite-population", "cartographie", "aide-deplacement"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

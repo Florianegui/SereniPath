@@ -1,0 +1,113 @@
+{
+  "scrapedAt": "2026-02-06T09:49:08.647Z",
+  "sources": {
+    "dataGouv": {
+      "source": "data.gouv.fr",
+      "datasets": []
+    },
+    "insee": {
+      "source": "INSEE",
+      "regions": [
+        {
+          "name": "Île-de-France",
+          "population": 12300000,
+          "density": 1000
+        },
+        {
+          "name": "Provence-Alpes-Côte d'Azur",
+          "population": 5100000,
+          "density": 160
+        },
+        {
+          "name": "Auvergne-Rhône-Alpes",
+          "population": 8100000,
+          "density": 110
+        },
+        {
+          "name": "Hauts-de-France",
+          "population": 6000000,
+          "density": 190
+        },
+        {
+          "name": "Occitanie",
+          "population": 6000000,
+          "density": 80
+        }
+      ],
+      "lastUpdated": "2026-02-06T09:49:08.672Z"
+    },
+    "santePublique": {
+      "source": "santepubliquefrance.fr",
+      "note": "Site protégé - utiliser l'API officielle ou données manuelles",
+      "prevalence": {
+        "global": "15-20%",
+        "severe": "2-3%",
+        "moderate": "7-9%",
+        "mild": "6-8%"
+      },
+      "lastUpdated": "2026-02-06T09:49:08.672Z"
+    },
+    "transports": {
+      "source": "Île-de-France Mobilités",
+      "hourlyAffluence": [
+        {
+          "hour": 7,
+          "metro": 1200000,
+          "bus": 800000,
+          "total": 2000000,
+          "description": "Heure de pointe matinale"
+        },
+        {
+          "hour": 8,
+          "metro": 1500000,
+          "bus": 1000000,
+          "total": 2500000,
+          "description": "Pic matinal"
+        },
+        {
+          "hour": 9,
+          "metro": 1300000,
+          "bus": 900000,
+          "total": 2200000,
+          "description": "Fin pointe matinale"
+        },
+        {
+          "hour": 12,
+          "metro": 600000,
+          "bus": 400000,
+          "total": 1000000,
+          "description": "Pause déjeuner"
+        },
+        {
+          "hour": 17,
+          "metro": 1300000,
+          "bus": 900000,
+          "total": 2200000,
+          "description": "Début pointe soir"
+        },
+        {
+          "hour": 18,
+          "metro": 1600000,
+          "bus": 1100000,
+          "total": 2700000,
+          "description": "Pic soirée"
+        },
+        {
+          "hour": 19,
+          "metro": 1400000,
+          "bus": 950000,
+          "total": 2350000,
+          "description": "Fin pointe soir"
+        },
+        {
+          "hour": 22,
+          "metro": 300000,
+          "bus": 200000,
+          "total": 500000,
+          "description": "Soirée calme"
+        }
+      ],
+      "lastUpdated": "2026-02-06T09:49:08.672Z"
+    }
+  }
+}
