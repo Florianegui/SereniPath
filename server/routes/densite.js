@@ -1,8 +1,8 @@
 const express = require('express');
-const db = require('../config/database');
-const { updateMultipleZonesDensity } = require('../utils/realTimeDensity');
-const { getPoiDensityInArea } = require('../utils/poiDensity');
-const { geocodeAddress } = require('../utils/geocoding');
+const db = require('../config/baseDonnees');
+const { updateMultipleZonesDensity } = require('../utils/densiteTempsReel');
+const { getPoiDensityInArea } = require('../utils/densitePoi');
+const { geocodeAddress } = require('../utils/geocodage');
 
 const router = express.Router();
 
@@ -23,26 +23,30 @@ router.get('/city', async (req, res) => {
   }
 });
 
-// Densité par zone géographique (ville) : POIs type resto, gare, musée, etc. selon heure/jour
+// Densité par zone géographique (ville) : POIs type resto, bar, musée, gare, etc. selon heure/jour
+// Affluence estimée en fonction de l'heure et du jour pour chaque type de lieu
 router.get('/by-area', async (req, res) => {
+  let lat;
+  let lng;
   try {
-    const lat = parseFloat(req.query.lat);
-    const lng = parseFloat(req.query.lng);
-    const radius = parseInt(req.query.radius) || 5000;
-    const hour = req.query.hour !== undefined ? parseInt(req.query.hour) : new Date().getHours();
-    const dayOfWeek = req.query.dayOfWeek !== undefined ? parseInt(req.query.dayOfWeek) : new Date().getDay();
+    lat = parseFloat(req.query.lat);
+    lng = parseFloat(req.query.lng);
+    const radius = Math.min(parseInt(req.query.radius, 10) || 12000, 20000); // Max 20km pour grandes villes
+    const hour = req.query.hour !== undefined ? parseInt(req.query.hour, 10) : new Date().getHours();
+    const dayOfWeek = req.query.dayOfWeek !== undefined ? parseInt(req.query.dayOfWeek, 10) : new Date().getDay();
+    const limit = Math.min(parseInt(req.query.limit, 10) || 300, 500);
 
-    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
       return res.status(400).json({ message: 'Coordonnées lat/lng invalides' });
     }
 
     const zones = await getPoiDensityInArea(lat, lng, radius, hour, dayOfWeek);
-
-    const data = zones.map(z => ({
+    console.log(`[Density API] Found ${zones.length} zones for lat=${lat}, lng=${lng}, radius=${radius}m`);
+    const data = (Array.isArray(zones) ? zones : []).slice(0, limit).map(z => ({
       id: z.id,
       name: z.name,
-      latitude: z.latitude,
-      longitude: z.longitude,
+      latitude: Number(z.latitude),
+      longitude: Number(z.longitude),
       radius: z.radius,
       avg_density: z.density_score,
       max_density: z.density_score,
@@ -54,7 +58,9 @@ router.get('/by-area', async (req, res) => {
     res.json(data);
   } catch (err) {
     console.error('Density by-area error:', err);
-    res.status(500).json({ message: 'Erreur lors du chargement des densités' });
+    if (!res.headersSent) {
+      res.status(500).json({ message: 'Erreur lors du chargement des densités' });
+    }
   }
 });
 

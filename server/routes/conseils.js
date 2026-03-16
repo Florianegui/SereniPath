@@ -1,8 +1,8 @@
 const express = require('express');
-const db = require('../config/database');
-const authenticate = require('../middleware/auth');
-const { updateMultipleZonesDensity } = require('../utils/realTimeDensity');
-const { getPoiDensityInArea } = require('../utils/poiDensity');
+const db = require('../config/baseDonnees');
+const authenticate = require('../middleware/authentification');
+const { updateMultipleZonesDensity } = require('../utils/densiteTempsReel');
+const { getPoiDensityInArea } = require('../utils/densitePoi');
 
 const router = express.Router();
 

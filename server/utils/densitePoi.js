@@ -67,34 +67,57 @@ async function getPoiDensityInArea(lat, lng, radiusMeters = 5000, hour = 12, day
   const minLng = lng - delta / Math.cos(lat * Math.PI / 180);
   const maxLng = lng + delta / Math.cos(lat * Math.PI / 180);
 
+  // Requête Overpass améliorée pour récupérer plus de POIs en France
   const query = `
-    [out:json][timeout:30];
+    [out:json][timeout:45];
     (
+      // Restaurants et restauration
       node["amenity"="restaurant"](${minLat},${minLng},${maxLat},${maxLng});
       node["amenity"="fast_food"](${minLat},${minLng},${maxLat},${maxLng});
+      node["amenity"="cafe"](${minLat},${minLng},${maxLat},${maxLng});
+      node["amenity"="ice_cream"](${minLat},${minLng},${maxLat},${maxLng});
+      // Bars et vie nocturne
       node["amenity"="bar"](${minLat},${minLng},${maxLat},${maxLng});
+      node["amenity"="pub"](${minLat},${minLng},${maxLat},${maxLng});
       node["amenity"="nightclub"](${minLat},${minLng},${maxLat},${maxLng});
+      node["amenity"="biergarten"](${minLat},${minLng},${maxLat},${maxLng});
+      // Culture et loisirs
       node["amenity"="cinema"](${minLat},${minLng},${maxLat},${maxLng});
+      node["amenity"="theatre"](${minLat},${minLng},${maxLat},${maxLng});
       node["tourism"="museum"](${minLat},${minLng},${maxLat},${maxLng});
       node["tourism"="attraction"](${minLat},${minLng},${maxLat},${maxLng});
+      node["tourism"="gallery"](${minLat},${minLng},${maxLat},${maxLng});
+      // Transports
       node["railway"="station"](${minLat},${minLng},${maxLat},${maxLng});
       node["public_transport"="station"](${minLat},${minLng},${maxLat},${maxLng});
+      node["amenity"="bus_station"](${minLat},${minLng},${maxLat},${maxLng});
+      // Shopping
       node["shop"="mall"](${minLat},${minLng},${maxLat},${maxLng});
       node["shop"="department_store"](${minLat},${minLng},${maxLat},${maxLng});
+      node["shop"="supermarket"](${minLat},${minLng},${maxLat},${maxLng});
+      // Ways (polygones) pour les grands établissements
       way["amenity"="restaurant"](${minLat},${minLng},${maxLat},${maxLng});
+      way["amenity"="fast_food"](${minLat},${minLng},${maxLat},${maxLng});
+      way["amenity"="cafe"](${minLat},${minLng},${maxLat},${maxLng});
+      way["amenity"="bar"](${minLat},${minLng},${maxLat},${maxLng});
       way["tourism"="museum"](${minLat},${minLng},${maxLat},${maxLng});
+      way["tourism"="attraction"](${minLat},${minLng},${maxLat},${maxLng});
       way["railway"="station"](${minLat},${minLng},${maxLat},${maxLng});
+      way["shop"="mall"](${minLat},${minLng},${maxLat},${maxLng});
+      way["shop"="supermarket"](${minLat},${minLng},${maxLat},${maxLng});
     );
-    out center 200;
+    out center 500;
   `;
 
   try {
+    console.log(`[POI Density] Fetching POIs for lat=${lat}, lng=${lng}, radius=${radiusMeters}m, hour=${hour}, day=${dayOfWeek}`);
     const response = await axios.post(OVERPASS_URL, `data=${encodeURIComponent(query)}`, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      timeout: 20000
+      timeout: 30000 // Timeout augmenté pour grandes villes
     });
 
     const elements = response.data.elements || [];
+    console.log(`[POI Density] Overpass returned ${elements.length} elements`);
     const zones = [];
     const seen = new Set();
 
@@ -116,21 +139,24 @@ async function getPoiDensityInArea(lat, lng, radiusMeters = 5000, hour = 12, day
       const tags = el.tags || {};
       name = tags.name || tags['name:fr'] || null;
 
+      // Classification des POIs
       if (tags.amenity === 'restaurant' || tags.amenity === 'fast_food') {
         poiType = 'restaurant';
-      } else if (tags.amenity === 'bar') {
+      } else if (tags.amenity === 'cafe' || tags.amenity === 'ice_cream') {
+        poiType = 'restaurant'; // Traiter comme restaurant pour la fréquentation
+      } else if (tags.amenity === 'bar' || tags.amenity === 'pub' || tags.amenity === 'biergarten') {
         poiType = 'bar';
       } else if (tags.amenity === 'nightclub') {
         poiType = 'nightclub';
-      } else if (tags.amenity === 'cinema') {
+      } else if (tags.amenity === 'cinema' || tags.amenity === 'theatre') {
         poiType = 'cinema';
-      } else if (tags.tourism === 'museum') {
+      } else if (tags.tourism === 'museum' || tags.tourism === 'gallery') {
         poiType = 'museum';
       } else if (tags.tourism === 'attraction') {
         poiType = 'attraction';
-      } else if (tags.railway === 'station' || tags.public_transport === 'station') {
+      } else if (tags.railway === 'station' || tags.public_transport === 'station' || tags.amenity === 'bus_station') {
         poiType = 'railway_station';
-      } else if (tags.shop === 'mall' || tags.shop === 'department_store') {
+      } else if (tags.shop === 'mall' || tags.shop === 'department_store' || tags.shop === 'supermarket') {
         poiType = 'mall';
       } else {
         poiType = 'default';
@@ -148,9 +174,14 @@ async function getPoiDensityInArea(lat, lng, radiusMeters = 5000, hour = 12, day
       });
     }
 
+    console.log(`[POI Density] Processed ${zones.length} zones after deduplication`);
     return zones;
   } catch (err) {
-    console.error('POI density Overpass error:', err.message);
+    console.error('[POI Density] Overpass error:', err.message);
+    if (err.response) {
+      console.error('[POI Density] Response status:', err.response.status);
+      console.error('[POI Density] Response data:', err.response.data);
+    }
     return [];
   }
 }

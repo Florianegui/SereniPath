@@ -1,7 +1,7 @@
 const express = require('express');
-const db = require('../config/database');
-const authenticate = require('../middleware/auth');
-const { getPopulationStats, getAnxietyStats, getHourlyAffluenceStats, getArrondissementStats } = require('../utils/populationStats');
+const db = require('../config/baseDonnees');
+const authenticate = require('../middleware/authentification');
+const { getPopulationStats, getAnxietyStats, getHourlyAffluenceStats, getArrondissementStats } = require('../utils/statistiquesPopulation');
 
 const router = express.Router();
 
@@ -89,17 +89,45 @@ router.get('/user', authenticate, async (req, res) => {
       [userId]
     );
 
-    // Statistiques de densité
+    // Statistiques de densité (avec density_level si disponible, sinon calculé)
     const [densityStats] = await db.pool.execute(
       `SELECT 
         AVG(density_score) as avg_density,
         MIN(density_score) as min_density,
         MAX(density_score) as max_density,
-        COUNT(CASE WHEN density_score < 30 THEN 1 END) as calm_routes,
-        COUNT(CASE WHEN density_score >= 30 AND density_score < 60 THEN 1 END) as moderate_routes,
-        COUNT(CASE WHEN density_score >= 60 THEN 1 END) as busy_routes
+        COUNT(CASE WHEN density_level = 'calm' OR (density_level IS NULL AND density_score < 30) THEN 1 END) as calm_routes,
+        COUNT(CASE WHEN density_level = 'moderate' OR (density_level IS NULL AND density_score >= 30 AND density_score < 60) THEN 1 END) as moderate_routes,
+        COUNT(CASE WHEN density_level = 'elevated' OR (density_level IS NULL AND density_score >= 60) THEN 1 END) as elevated_routes
        FROM routes 
        WHERE user_id = ?`,
+      [userId]
+    );
+
+    // Évolution hebdomadaire des trajets (dernières 12 semaines)
+    const [weeklyEvolution] = await db.pool.execute(
+      `SELECT 
+        YEAR(created_at) as year,
+        WEEK(created_at, 1) as week,
+        DATE_FORMAT(DATE_SUB(created_at, INTERVAL WEEKDAY(created_at) DAY), '%Y-%m-%d') as week_start,
+        COUNT(*) as count
+       FROM routes 
+       WHERE user_id = ?
+         AND created_at >= DATE_SUB(NOW(), INTERVAL 12 WEEK)
+       GROUP BY YEAR(created_at), WEEK(created_at, 1), week_start
+       ORDER BY year DESC, week DESC
+       LIMIT 12`,
+      [userId]
+    );
+
+    // Répartition par type de transport
+    const [transportDistribution] = await db.pool.execute(
+      `SELECT 
+        COALESCE(transport_type, 'walking') as transport_type,
+        COUNT(*) as count
+       FROM routes 
+       WHERE user_id = ?
+       GROUP BY COALESCE(transport_type, 'walking')
+       ORDER BY count DESC`,
       [userId]
     );
 
@@ -135,8 +163,20 @@ router.get('/user', authenticate, async (req, res) => {
         max: parseFloat(densityStats[0].max_density || 0).toFixed(2),
         calm: densityStats[0].calm_routes || 0,
         moderate: densityStats[0].moderate_routes || 0,
-        busy: densityStats[0].busy_routes || 0
-      }
+        busy: densityStats[0].elevated_routes || 0
+      },
+      weeklyEvolution: weeklyEvolution.map(w => ({
+        week: `${w.year}-W${String(w.week).padStart(2, '0')}`,
+        weekStart: w.week_start,
+        count: w.count
+      })).reverse(), // Inverser pour avoir les plus anciennes en premier
+      transportDistribution: transportDistribution.map(t => ({
+        type: t.transport_type === 'walking' ? 'À pied' :
+              t.transport_type === 'car' ? 'Voiture' :
+              t.transport_type === 'transport' ? 'Transport en commun' :
+              t.transport_type === 'bicycle' ? 'Vélo' : t.transport_type,
+        count: t.count
+      }))
     });
   } catch (error) {
     console.error('Get user stats error:', error);

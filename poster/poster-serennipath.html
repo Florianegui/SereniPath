@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SereniPath - Poster</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0f1412;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .poster {
+      width: 100%;
+      max-width: 59cm;
+      aspect-ratio: 59 / 84;
+      max-height: 95vh;
+      background: linear-gradient(145deg, #0d1f18 0%, #132a20 40%, #1a3d2e 100%);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 50px 150px rgba(0,0,0,0.5);
+      position: relative;
+    }
+
+    /* Formes décoratives */
+    .poster::before {
+      content: "";
+      position: absolute;
+      top: -20%;
+      right: -10%;
+      width: 60%;
+      height: 60%;
+      background: radial-gradient(circle, rgba(66, 119, 86, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .poster::after {
+      content: "";
+      position: absolute;
+      bottom: -15%;
+      left: -15%;
+      width: 50%;
+      height: 50%;
+      background: radial-gradient(circle, rgba(168, 219, 168, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 3rem 3.5rem;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2.5rem;
+    }
+
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, #4a8b6a 0%, #356048 100%);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      box-shadow: 0 10px 40px rgba(66, 119, 86, 0.4);
+    }
+
+    .title-block h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    .title-block p {
+      font-size: 1rem;
+      color: #9ACF9A;
+      margin-top: 0.5rem;
+      font-weight: 500;
+    }
+
+    .qr-wrap {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 1.25rem;
+      text-align: center;
+    }
+
+    .qr-wrap span {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #9ACF9A;
+      letter-spacing: 0.15em;
+      margin-bottom: 0.75rem;
+    }
+
+    .qr-box {
+      width: 90px;
+      height: 90px;
+      background: #fff;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: #427756;
+    }
+
+    /* Zone centrale - accroche */
+    .hero {
+      background: linear-gradient(135deg, rgba(74, 139, 106, 0.25) 0%, rgba(52, 96, 72, 0.15) 100%);
+      border: 1px solid rgba(154, 207, 154, 0.2);
+      border-radius: 24px;
+      padding: 2rem 2.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .hero p {
+      font-size: 1.15rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.9);
+      font-weight: 450;
+    }
+
+    /* Grille fonctionnalités */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .feature-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(154, 207, 154, 0.3);
+    }
+
+    .feature-card .icon {
+      font-size: 1.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .feature-card h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.35rem;
+    }
+
+    .feature-card p {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.4;
+    }
+
+    /* Bas */
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .tech {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .tech span {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.05);
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+    }
+
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.7);
+      font-weight: 500;
+    }
+
+    .flow span { opacity: 0.8; }
+
+    .credits {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.4);
+    }
+
+    @media print {
+      body { background: #0d1f18; padding: 0; }
+      .poster { box-shadow: none; border-radius: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="poster">
+    <div class="content">
+      <header class="header">
+        <div class="logo-wrap">
+          <div class="logo">🌿</div>
+          <div class="title-block">
+            <h1>SereniPath</h1>
+            <p>Se déplacer en toute sérénité</p>
+          </div>
+        </div>
+        <div class="qr-wrap">
+          <span>SCAN</span>
+          <div class="qr-box">QR</div>
+        </div>
+      </header>
+
+      <section class="hero">
+        <p>Parce que se déplacer ne devrait jamais être une source d'anxiété, SereniPath vous guide avec des itinéraires adaptés et des lieux calmes.</p>
+      </section>
+
+      <section class="features">
+        <div class="feature-card">
+          <div class="icon">🛤️</div>
+          <h3>3 itinéraires</h3>
+          <p>Peu, moyen ou beaucoup de monde</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🗺️</div>
+          <h3>Carte densité</h3>
+          <p>Zones calmes par heure</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">☕</div>
+          <h3>Lieux sécurisants</h3>
+          <p>Cafés, parcs, refuges</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">📱</div>
+          <h3>Mobile & desktop</h3>
+          <p>Interface responsive</p>
+        </div>
+      </section>
+
+      <footer class="footer-row">
+        <div class="tech">
+          <span>React</span>
+          <span>Node.js</span>
+          <span>Leaflet</span>
+          <span>MySQL</span>
+        </div>
+        <div class="flow">
+          <span>📍 Départ</span> → <span>🛤️ Itinéraires</span> → <span>🌿 Arrivée</span>
+        </div>
+        <span class="credits">SereniPath — 2025</span>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

@@ -2,7 +2,7 @@
  * Script de scraping pour collecter des données sur l'anxiété en France
  * Sources : data.gouv.fr, santepubliquefrance.fr, insee.fr
  * 
- * Usage: node scripts/scrape-anxiety-data.js
+ * Usage: node scripts/scrape-donnees-anxiete.js
  */
 
 const axios = require('axios');

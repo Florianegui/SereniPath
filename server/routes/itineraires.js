@@ -1,12 +1,13 @@
 const axios = require('axios');
 const express = require('express');
-const db = require('../config/database');
-const authenticate = require('../middleware/auth');
-const { geocodeAddress, isInFrance } = require('../utils/geocoding');
-const { generateThreeRouteVariants } = require('../utils/routeService');
-const { updateMultipleZonesDensity } = require('../utils/realTimeDensity');
+const db = require('../config/baseDonnees');
+const authenticate = require('../middleware/authentification');
+const { geocodeAddress, isInFrance } = require('../utils/geocodage');
+const { generateThreeRouteVariants } = require('../utils/serviceItineraires');
+const { updateMultipleZonesDensity } = require('../utils/densiteTempsReel');
 const { findRestPointsAround, findRestPointsAlongRoute } = require('../utils/overpass');
 const { addPoints, updateStreak, checkAndAwardBadge, POINTS } = require('./gamification');
+const anxietyPredictor = require('../utils/ml/predicteurAnxiete');
 
 const router = express.Router();
 
@@ -178,6 +179,69 @@ router.post('/calculate', authenticate, async (req, res) => {
 
     routes.sort((a, b) => a.avgDensity - b.avgDensity);
 
+    // Prédictions ML d'anxiété pour chaque route
+    const routesWithPredictions = await Promise.all(
+      routes.map(async (route) => {
+        try {
+          const pathCoords = route.route && route.route.features && route.route.features[0]
+            ? route.route.features[0].geometry.coordinates
+            : [];
+          
+          // Calculer la distance du trajet
+          let distance = 0;
+          if (pathCoords.length >= 2) {
+            for (let i = 1; i < pathCoords.length; i++) {
+              const [lng1, lat1] = pathCoords[i - 1];
+              const [lng2, lat2] = pathCoords[i];
+              const R = 6371;
+              const dLat = (lat2 - lat1) * (Math.PI / 180);
+              const dLng = (lng2 - lng1) * (Math.PI / 180);
+              const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+              distance += R * c;
+            }
+          } else {
+            // Fallback: distance directe
+            const R = 6371;
+            const dLat = (endCoords.lat - startCoords.lat) * (Math.PI / 180);
+            const dLng = (endCoords.lng - startCoords.lng) * (Math.PI / 180);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(startCoords.lat * Math.PI / 180) * Math.cos(endCoords.lat * Math.PI / 180) *
+                      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            distance = R * c;
+          }
+
+          const prediction = await anxietyPredictor.predictAnxiety(req.user.userId, {
+            startLat: startCoords.lat,
+            startLng: startCoords.lng,
+            endLat: endCoords.lat,
+            endLng: endCoords.lng,
+            hour: currentHour,
+            dayOfWeek: currentDay,
+            densityScore: route.avgDensity,
+            transportMode: transportMode === 'walking' ? 0 : 
+                           transportMode === 'driving' ? 1 :
+                           transportMode === 'transit' ? 2 : 3,
+            distance: distance
+          });
+
+          return {
+            ...route,
+            mlPrediction: prediction
+          };
+        } catch (error) {
+          console.error('Error predicting anxiety for route:', error);
+          return {
+            ...route,
+            mlPrediction: null
+          };
+        }
+      })
+    );
+
     // Points de repos calmes (Overpass) : autour du milieu du trajet + le long de l'itinéraire recommandé
     let restPoints = [];
     try {
@@ -206,8 +270,23 @@ router.post('/calculate', authenticate, async (req, res) => {
       const pathCoords = recommendedRoute.route && recommendedRoute.route.features && recommendedRoute.route.features[0]
         ? recommendedRoute.route.features[0].geometry.coordinates
         : [];
+      // Déterminer le niveau de densité
+      const densityScore = recommendedRoute.avgDensity || 0;
+      let densityLevel = 'moderate';
+      if (densityScore < 30) {
+        densityLevel = 'calm';
+      } else if (densityScore >= 60) {
+        densityLevel = 'elevated';
+      }
+      
+      // Normaliser le transport_type
+      const normalizedTransportType = transportMode === 'walking' ? 'walking' :
+                                     transportMode === 'driving' ? 'car' :
+                                     transportMode === 'transit' ? 'transport' :
+                                     transportMode === 'bicycling' ? 'bicycle' : 'walking';
+      
       await db.pool.execute(
-        'INSERT INTO routes (user_id, start_lat, start_lng, end_lat, end_lng, recommended_path, density_score) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO routes (user_id, start_lat, start_lng, end_lat, end_lng, recommended_path, density_score, transport_type, density_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           req.user.userId,
           startCoords.lat,
@@ -215,7 +294,9 @@ router.post('/calculate', authenticate, async (req, res) => {
           endCoords.lat,
           endCoords.lng,
           JSON.stringify(pathCoords),
-          recommendedRoute.avgDensity
+          densityScore,
+          normalizedTransportType,
+          densityLevel
         ]
       );
       
@@ -249,7 +330,7 @@ router.post('/calculate', authenticate, async (req, res) => {
     }
 
     res.json({
-      routes,
+      routes: routesWithPredictions,
       start: startCoords,
       end: endCoords,
       restPoints,

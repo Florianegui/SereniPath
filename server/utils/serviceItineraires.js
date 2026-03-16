@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { getGoogleRoute } = require('./googleRoutes');
+const { getGoogleRoute } = require('./googleItineraires');
 
 // Profils OpenRouteService : foot-walking, driving-car, cycling-regular
 const ORS_PROFILES = { walking: 'foot-walking', driving: 'driving-car', transit: 'foot-walking', bicycling: 'cycling-regular' };
@@ -216,12 +216,18 @@ async function generateThreeRouteVariants(start, end, zones, hour, dayOfWeek, tr
     return routes;
   }
 
-  // Une seule route : en mode marche avec zones on génère calm/moderate ; sinon on affiche 3 fois la même
+  // Une seule route : toujours générer 3 trajets vraiment différents (calm = détour ou zone calme, moderate = détour opposé)
   let calmRoute = directRoute;
   let moderateRoute = directRoute;
   if (transportMode === 'walking' && zones && zones.length > 0) {
     calmRoute = await generateCalmRoute(start, end, zones, hour, dayOfWeek);
     moderateRoute = await generateModerateRoute(start, end, zones, hour, dayOfWeek);
+  } else if (transportMode === 'walking') {
+    calmRoute = await generateDetourRoute(start, end, 1.25, true);
+    moderateRoute = await generateModerateRoute(start, end, [], hour, dayOfWeek);
+  } else if (transportMode === 'driving' || transportMode === 'bicycling') {
+    calmRoute = await generateDetourRoute(start, end, 1.2, true);
+    moderateRoute = await generateDetourRoute(start, end, 1.1, false);
   }
   const calmDensity = calculateRouteDensity(calmRoute, zones || [], hour, dayOfWeek);
   const moderateDensity = calculateRouteDensity(moderateRoute, zones || [], hour, dayOfWeek);
@@ -362,21 +368,19 @@ async function generateCalmRoute(start, end, zones, hour, dayOfWeek) {
     };
   }
   
-  // Sinon, générer un itinéraire avec un détour
-  return generateDetourRoute(start, end, 1.2); // 20% plus long
+  // Sinon, générer un itinéraire avec un détour (côté "droit" pour le calme)
+  return generateDetourRoute(start, end, 1.25, true);
 }
 
-// Générer un itinéraire modéré
+// Générer un itinéraire modéré (détour côté opposé au calme pour un 2e trajet vraiment différent)
 async function generateModerateRoute(start, end, zones, hour, dayOfWeek) {
-  // Itinéraire avec un petit détour, évitant les zones très denses
-  return generateDetourRoute(start, end, 1.1); // 10% plus long
+  return generateDetourRoute(start, end, 1.15, false); // 15% plus long, sens inverse au calme
 }
 
-// Générer un itinéraire avec détour
-function generateDetourRoute(start, end, detourFactor) {
+// Générer un itinéraire avec détour (sideRight: true = un côté, false = l'autre côté)
+function generateDetourRoute(start, end, detourFactor, sideRight = true) {
   const coordinates = [];
   
-  // S'assurer que les coordonnées sont des nombres
   const startLat = typeof start.lat === 'number' ? start.lat : parseFloat(start.lat);
   const startLng = typeof start.lng === 'number' ? start.lng : parseFloat(start.lng);
   const endLat = typeof end.lat === 'number' ? end.lat : parseFloat(end.lat);
@@ -384,17 +388,16 @@ function generateDetourRoute(start, end, detourFactor) {
   
   coordinates.push([parseFloat(startLng.toFixed(7)), parseFloat(startLat.toFixed(7))]);
   
-  // Créer un détour en ajoutant un waypoint décalé
   const midLat = (startLat + endLat) / 2;
   const midLng = (startLng + endLng) / 2;
-  
-  // Décaler le point médian perpendiculairement
   const latDiff = endLat - startLat;
   const lngDiff = endLng - startLng;
-  const detourAmount = 0.003 * detourFactor; // ~300m de détour
+  const detourAmount = 0.004 * detourFactor; // ~400m pour bien différencier
   
-  const detourLat = parseFloat((midLat + (lngDiff > 0 ? detourAmount : -detourAmount)).toFixed(7));
-  const detourLng = parseFloat((midLng - (latDiff > 0 ? detourAmount : -detourAmount)).toFixed(7));
+  // Côté "droit" ou "gauche" du segment pour avoir 2 détours distincts
+  const sign = sideRight ? 1 : -1;
+  const detourLat = parseFloat((midLat + sign * (lngDiff > 0 ? detourAmount : -detourAmount)).toFixed(7));
+  const detourLng = parseFloat((midLng - sign * (latDiff > 0 ? detourAmount : -detourAmount)).toFixed(7));
   
   coordinates.push([detourLng, detourLat]);
   coordinates.push([parseFloat(endLng.toFixed(7)), parseFloat(endLat.toFixed(7))]);
