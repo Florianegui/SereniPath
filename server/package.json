@@ -1,7 +1,7 @@
 {
-  "name": "serenipathh-server",
+  "name": "zenova-server",
   "version": "1.0.0",
-  "description": "Backend API for SereniPathh",
+  "description": "Backend API for Zénova",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

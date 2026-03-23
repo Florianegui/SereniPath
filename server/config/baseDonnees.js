@@ -7,7 +7,7 @@ const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'serenipathh',
+  database: process.env.DB_NAME || 'zenova',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -380,7 +380,7 @@ const createTables = async () => {
 
 const insertSampleChallenges = async () => {
   const challenges = [
-    { title: 'Premier pas', description: 'Planifiez votre premier trajet avec SereniPath', challenge_type: 'routes', target_value: 1, reward_points: 50 },
+    { title: 'Premier pas', description: 'Planifiez votre premier trajet avec Zénova', challenge_type: 'routes', target_value: 1, reward_points: 50 },
     { title: 'Explorateur', description: 'Planifiez 10 trajets différents', challenge_type: 'routes', target_value: 10, reward_points: 100 },
     { title: 'Marathonien', description: 'Parcourez 50 km au total', challenge_type: 'distance', target_value: 50, reward_points: 150 },
     { title: 'Sérénité', description: 'Choisissez 10 trajets calmes (densité < 30)', challenge_type: 'calm', target_value: 10, reward_points: 200 },

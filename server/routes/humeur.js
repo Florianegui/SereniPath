@@ -134,7 +134,7 @@ function getRewardForMonth(goodDaysCount, daysInMonth) {
   return {
     level: 'encouragement',
     title: 'On repart sur de bonnes bases',
-    message: 'Le mois prochain peut être différent : SereniPath est là pour vous aider à trouver des trajets plus sereins.',
+    message: 'Le mois prochain peut être différent : Zénova est là pour vous aider à trouver des trajets plus sereins.',
     icon: '💚'
   };
 }

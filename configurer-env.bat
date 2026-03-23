@@ -1,6 +1,6 @@
 @echo off
 echo ========================================
-echo Configuration de SereniPathh
+echo Configuration de Zénova
 echo ========================================
 echo.
 
@@ -34,8 +34,8 @@ if "%DB_PASSWORD%"=="" set DB_PASSWORD=
 set /p DB_HOST="Entrez l'host MySQL [localhost]: "
 if "%DB_HOST%"=="" set DB_HOST=localhost
 
-set /p DB_NAME="Entrez le nom de la base de donnees [serenipathh]: "
-if "%DB_NAME%"=="" set DB_NAME=serenipathh
+set /p DB_NAME="Entrez le nom de la base de donnees [zenova]: "
+if "%DB_NAME%"=="" set DB_NAME=zenova
 
 set /p PORT="Entrez le port du serveur [5000]: "
 if "%PORT%"=="" set PORT=5000
@@ -45,7 +45,7 @@ echo Creation du fichier server\.env...
 
 (
 echo PORT=%PORT%
-echo JWT_SECRET=serenipathh_secret_key_change_in_production_%RANDOM%%RANDOM%
+echo JWT_SECRET=zenova_secret_key_change_in_production_%RANDOM%%RANDOM%
 echo DB_HOST=%DB_HOST%
 echo DB_USER=%DB_USER%
 echo DB_PASSWORD=%DB_PASSWORD%

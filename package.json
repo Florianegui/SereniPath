@@ -1,5 +1,5 @@
 {
-  "name": "serenipathh",
+  "name": "zenova",
   "version": "1.0.0",
   "description": "Agrégateur de données et cartographie d'estimation de densité de population pour l'aide au déplacement des personnes atteintes de phobies sociales",
   "main": "server/index.js",

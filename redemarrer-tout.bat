@@ -22,11 +22,11 @@ echo.
 
 echo Demarrage du backend et du frontend...
 cd /d "%~dp0server"
-start "SereniPathh Backend" cmd /k npm run dev
+start "Zénova Backend" cmd /k npm run dev
 cd /d "%~dp0"
 timeout /t 3 /nobreak >nul
 cd /d "%~dp0client"
-start "SereniPathh Frontend" cmd /k npm start
+start "Zénova Frontend" cmd /k npm start
 cd /d "%~dp0"
 
 echo.

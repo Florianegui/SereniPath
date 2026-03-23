@@ -192,10 +192,13 @@ async function generateThreeRouteVariants(start, end, zones, hour, dayOfWeek, tr
     routes.sort((a, b) => a.avgDensity - b.avgDensity);
     routes[0].label = 'Peu de monde';
     routes[0].description = 'Itinéraire le plus calme';
+    routes[0].color = '#7BC27B'; // Vert
     routes[1].label = 'Moyen monde';
     routes[1].description = 'Itinéraire modéré';
+    routes[1].color = '#F97316'; // Orange
     routes[2].label = 'Beaucoup de monde';
     routes[2].description = 'Itinéraire direct (peut être fréquenté)';
+    routes[2].color = '#EF4444'; // Rouge
     return routes;
   }
 
@@ -209,10 +212,13 @@ async function generateThreeRouteVariants(start, end, zones, hour, dayOfWeek, tr
     routes.sort((a, b) => a.avgDensity - b.avgDensity);
     routes[0].label = 'Peu de monde';
     routes[0].description = 'Itinéraire le plus calme';
+    routes[0].color = '#7BC27B'; // Vert
     routes[1].label = 'Moyen monde';
     routes[1].description = 'Itinéraire modéré';
+    routes[1].color = '#F97316'; // Orange
     routes[2].label = 'Beaucoup de monde';
     routes[2].description = 'Itinéraire direct (peut être fréquenté)';
+    routes[2].color = '#EF4444'; // Rouge
     return routes;
   }
 
@@ -293,10 +299,13 @@ async function generateThreeRouteVariants(start, end, zones, hour, dayOfWeek, tr
   routes.sort((a, b) => a.avgDensity - b.avgDensity);
   routes[0].label = 'Peu de monde';
   routes[0].description = 'Itinéraire le plus calme';
+  routes[0].color = '#7BC27B'; // Vert
   routes[1].label = 'Moyen monde';
   routes[1].description = 'Itinéraire modéré';
+  routes[1].color = '#F97316'; // Orange
   routes[2].label = 'Beaucoup de monde';
   routes[2].description = 'Itinéraire direct (peut être fréquenté)';
+  routes[2].color = '#EF4444'; // Rouge
 
   return routes;
 }

@@ -11,7 +11,7 @@ async function initChallenges() {
     const challenges = [
       {
         title: 'Premier pas',
-        description: 'Planifiez votre premier trajet avec SereniPath',
+        description: 'Planifiez votre premier trajet avec Zénova',
         challenge_type: 'routes',
         target_value: 1,
         reward_points: 50,

@@ -48,7 +48,7 @@ async function geocodeWithNominatim(address) {
   const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=fr`;
 
   const response = await axios.get(url, {
-    headers: { 'User-Agent': 'SereniPath/1.0 (contact@serenipath.fr)' },
+    headers: { 'User-Agent': 'Zénova/1.0 (contact@zenova.fr)' },
     timeout: 10000
   });
 

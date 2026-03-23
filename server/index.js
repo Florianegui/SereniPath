@@ -33,7 +33,7 @@ app.use('/api/safe-places', require('./routes/lieuxSecurisants'));
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'SereniPathh API is running' });
+  res.json({ status: 'OK', message: 'Zénova API is running' });
 });
 
 // Initialize database
